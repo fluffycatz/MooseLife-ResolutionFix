@@ -1,4 +1,4 @@
-# Moose Life – Resolution List Fix
+# Moose Life - Resolution List Fix
 
 Fixes the Moose Life (PC, Steam) launcher not offering high resolutions - 1440p, 4K - on modern GPUs
 and displays. No EDID editing with CRU, no driver tricks, no second monitor.
@@ -130,8 +130,7 @@ loop. Llamasoft is welcome to it.
 
 ## Credits
 
-* Reverse engineering and the proxy done using Claude Fable (Anthropic).
-* crosire's ReShade - and its handling of the app-compat shim exports, which showed the way out of the start-up crash.
+* Reverse engineering, patch design and emulation testing done using Claude Fable (Anthropic).
 
 ## License
 

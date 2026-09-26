@@ -31,7 +31,7 @@ line - that buffer is the reason for the 256 limit.
 'GLFWvidmode' is '{ int width, height, redBits, greenBits, blueBits, refreshRate; }' - 24 bytes; the
 refresh rate is an integer, so the loop below converts it to float for its comparisons.
 
-### The loop (0x14009dfe6 – 0x14009e124)
+### The loop (0x14009dfe6 - 0x14009e124)
 
 Registers: 'esi' = source index, 'r14d' = 256, 'ebp' = accepted count, 'r12' = byte offset into 'g_out'
 (24 per entry), 'r15' = source array, 'r8d'/'r9d' = previous accepted width/height, 'xmm6' = previous
