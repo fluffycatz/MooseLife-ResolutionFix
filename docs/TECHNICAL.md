@@ -123,4 +123,4 @@ The expected outcome depends on the detected patch state (see the table in the s
 the original must reproduce the bug, Part A must fix the real-world case, and A+B must also fix the
 stress case.
 
-Confirmed on real hardware (Part A): RTX 5090 + LG G3 over HDMI 2.1, 3840×2160 listed and selectable.
+Confirmed on real hardware (Part A): RTX 5090 + LG G4 over HDMI 2.1, 3840×2160 listed and selectable.
