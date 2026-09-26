@@ -68,7 +68,7 @@ the launcher - prefs storage, the GLFW window/mode switch - handles any mode fin
 **Part A - 1 byte (default).** 'cmp esi, r14d' → 'cmp ebp, r14d': the cap now applies to the
 accepted-entry count ('ebp'), which is what the buffer size actually constrains. Nothing can overflow
 that was not already bounded; the 'LB_ADDSTRING' loop after the walk was already clamped to 256.
-This alone fixes the problem on real hardware (tested: RTX 5090 + LG G3, 3840×2160 @ 144 Hz).
+This alone fixes the problem on real hardware (tested: RTX 5090 + LG G4, 3840×2160 @ 144 Hz).
 
 **Part B - 6-byte hook + 32-byte code cave (optional, '-Filter' / '--filter').** For systems that would
 still produce more than 256 *accepted* modes (more than 256 modes at ≥ 50 Hz - very unusual): the
@@ -110,7 +110,7 @@ executables, and checks the outcome against what each build is supposed to do:
       real-world: 39 res x 12 Hz (468 modes)         accepted= 80  4K@60 listed: True   ok
       stress: 1080 modes, more pass the filter ...   accepted=204  4K@60 listed: True   ok
 
-Confirmed on real hardware (Part A): RTX 5090 + LG G3 (HDMI 2.1), 3840×2160 listed and running.
+Confirmed on real hardware (Part A): RTX 5090 + LG G4 (HDMI 2.1), 3840×2160 listed and running.
 
 ## FAQ
 
