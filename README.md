@@ -9,8 +9,8 @@ is a stretched low-res mode.
 refresh rates collapsed — that filtering is the game's own and unchanged). 3840×2160 @ 60 / 120 / 144 Hz
 all appear and work.
 
-It is the same bug as in Tempest 4000 (see the sibling project *Tempest4000-ResolutionFix*), in the
-x64 OpenGL build of Moose Life. The fix is applied to **your own** `MooselifeGL.exe` (1 byte; a backup
+It is the same bug as in Tempest 4000 and Polybius (see the sibling projects
+*Tempest4000-ResolutionFix* and *Polybius-ResolutionFix*), in the x64 OpenGL build of Moose Life. The fix is applied to **your own** `MooselifeGL.exe` (1 byte; a backup
 is kept). No game files are redistributed here.
 
 ## Quick start (Windows)

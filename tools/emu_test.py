@@ -1,5 +1,5 @@
 """
-Emulation test for the Moose Life launcher mode loop (x64).
+Emulation test for the Llamasoft GL launcher mode loop (Moose Life / Polybius) (x64).
 
 Runs the game's *real* code for the glfwGetVideoModes() walk under unicorn against synthetic mode
 lists and reports what would appear in the launcher's resolution list. Works on the original exe
@@ -18,7 +18,8 @@ set accordingly:
     python3 tools/emu_test.py path/to/MooselifeGL.exe
 
 Exit status is non-zero when a build does not behave as the table says.
-Addresses below are for the known Steam build (GL/OpenVR 1.06).
+All addresses are derived from the patch sites found by ml_resfix.locate(), so the harness works on
+every build the patcher does (the loop code is identical in Moose Life and Polybius).
 """
 import os, struct, sys
 import pefile
@@ -26,20 +27,32 @@ from unicorn import *
 from unicorn.x86_const import *
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-import ml_resfix
+import ml_resfix as resfix
 
 BASE = 0x140000000
-START = 0x14009df7c      # mov ecx,[rsp+0x74]  (just before the walk-loop setup)
-END   = 0x14009e15f      # after the ebp clamp, at GetDlgItem
-SWPRINTF = 0x14007d510   # (buf, count, fmt, w, h, hz)  -> our stub
-G_PREFS = 0x1401b6e90    # ptr to prefs struct (+0x818 w/h/hz override)
-G_DESIRED = 0x1401b6f90  # ptr to desired GLFWvidmode
-G_OUT = 0x1401b6f98      # ptr to output array
+
+def addresses(exe):
+    """Loop-relative addresses, checked against the expected instruction bytes."""
+    import pefile
+    pe = pefile.PE(exe); img = bytes(pe.get_memory_mapped_image()); base = pe.OPTIONAL_HEADER.ImageBase
+    R = resfix.locate(exe); A = R['A']
+    rd = lambda va, n: img[va - base: va - base + n]
+    def expect(va, hexbytes, what):
+        if rd(va, len(hexbytes) // 2) != bytes.fromhex(hexbytes): raise LookupError("%s: unexpected code at %#x" % (what, va))
+    start = A - 0x6a;  expect(start, '8b4c2474', 'loop setup (mov ecx,[rsp+0x74])')
+    end = A + 0x179;   expect(end, 'bad4070000', 'after loop (mov edx,0x7d4)')
+    call = A + 0x8d;   expect(call, 'e8', 'swprintf_s call')
+    swprintf = call + 5 + struct.unpack('<i', rd(call + 1, 4))[0]
+    prefs = A - 0xf3;  expect(prefs, '4c8b05', 'prefs pointer load')
+    g_prefs = prefs + 7 + struct.unpack('<i', rd(prefs + 3, 4))[0]
+    return dict(base=base, start=start, end=end, swprintf=swprintf, g_prefs=g_prefs, g_desired=R['G_desired'], g_out=R['G_out'])
 
 def vidmode(w,h,hz,r=8,g=8,b=8): return struct.pack('<6i', w,h,r,g,b,hz)  # GLFWvidmode = 24 bytes
 
 def run(exe, modes, desktop=(3840,2160,60), prefs=None):
     pe = pefile.PE(exe); img = bytes(pe.get_memory_mapped_image())
+    AD = addresses(exe); BASE = AD['base']
+    START, END, SWPRINTF, G_PREFS, G_DESIRED, G_OUT = AD['start'], AD['end'], AD['swprintf'], AD['g_prefs'], AD['g_desired'], AD['g_out']
     uc = Uc(UC_ARCH_X86, UC_MODE_64)
     size=(len(img)+0xfff)&~0xfff
     uc.mem_map(BASE, size+0x1000)
@@ -115,10 +128,10 @@ RES_BIG = sorted(set(RES) | {(320 + 8 * i, (320 + 8 * i) * 9 // 16 // 8 * 8) for
 HZ_BIG = [23, 24, 25, 29, 30, 48, 50, 59, 60, 75, 100, 119, 120, 143, 144]
 
 def patch_state(exe):
-    R = ml_resfix.locate(exe)
-    rows = ml_resfix.build(R, True)
+    R = resfix.locate(exe)
+    rows = resfix.build(R, True)
     data = open(exe, 'rb').read()
-    st = [ml_resfix.row_state(data, *r) for r in rows]
+    st = [resfix.row_state(data, *r) for r in rows]
     a = st[0]; b = 'patched' if st[1:] == ['patched', 'patched'] else 'orig' if st[1:] == ['orig', 'orig'] else 'unknown'
     return a, b
 

@@ -53,10 +53,16 @@ def locate(path):
     else:                        # already patched: read the skip target back out of the cave's first jb
         cave = jb + 5 + struct.unpack_from('<i', code, mb[0] + 5)[0]
         R['B_skip'] = cave + 6 + struct.unpack_from('<i', img, cave - base + 2)[0]
-    # pointer to the desired/desktop mode (GLFWvidmode*): the loop reads its width for the filter.
-    # Found via the instruction 'mov rax,[rip+disp]' that precedes 'cmp [r15+r14*8],eax'-style tests in
-    # the original loop; on the known build it is the qword at RVA 0x1b6f90.
-    R['G_desired'] = base + 0x1b6f90
+    # pointer to the desired/desktop mode (GLFWvidmode*), which the cave reads for its width filter.
+    # Right after the loop's swprintf_s call the code loads the two globals back to back:
+    #   mov r10,[rip+disp]  (output array)   4c 8b 15 disp32
+    #   mov r9, [rip+disp]  (desired mode)   4c 8b 0d disp32
+    win = code[mb[0]: mb[0] + 0x100]
+    mp = [m.start() for m in re.finditer(rb'\x4c\x8b\x15....\x4c\x8b\x0d', win, re.S)]
+    if len(mp) != 1: raise LookupError("desired-mode pointer load not uniquely found (%d matches)" % len(mp))
+    p = mb[0] + mp[0]
+    R['G_out'] = base + t0 + p + 7 + struct.unpack_from('<i', code, p + 3)[0]
+    R['G_desired'] = base + t0 + p + 14 + struct.unpack_from('<i', code, p + 10)[0]
     pad = t.VirtualAddress + t.Misc_VirtualSize
     R['cave'] = base + ((pad + 15) & ~15); R['cave_off'] = off(R['cave'])
     R['cave_room'] = (t.VirtualAddress + t.SizeOfRawData) - (R['cave'] - base)

@@ -113,15 +113,18 @@ does not do; that is why it is off by default. The patchers apply it only with `
 `ml_resfix.py` does not rely on fixed offsets: it finds `41 3b [f6|ee] 0f 83` (Part A, original or
 already patched) and `41 0f 2f d8..df (0f 82 | e9)` (the Part B hook) in `.text`, each of which must
 match exactly once, and computes the cave address from the section's virtual size. The desired-mode
-pointer (`0x1401b6f90`) is the one hard-coded address; on any other build the signature search is
-expected to fail loudly rather than patch the wrong place. The PowerShell/batch patcher is table-driven
+pointer is read out of the `mov r10,[rip+…]` / `mov r9,[rip+…]` pair that follows the loop's
+`swprintf_s` call, so nothing is hard-coded; on any other build the signature search is expected to
+fail loudly rather than patch the wrong place. (The same finder handles Polybius unchanged — its
+launcher is the same code.) The PowerShell/batch patcher is table-driven
 on SHA-256 + exact bytes at every site and knows only the build above.
 
 ## Verification
 
 `tools/emu_test.py` maps the executable at its preferred base with `pefile`, seeds the registers and
 stack slots the loop expects (source array, count, `g_desired`, `g_out`, prefs override), stubs
-`swprintf_s` at `0x14007d510`, and runs `0x14009df7c → 0x14009e15f` under unicorn. It then reads
+`swprintf_s`, and runs the loop (`0x14009df7c → 0x14009e15f`, both derived from the Part A site) under
+unicorn. It then reads
 back `ebp` and the 256 UTF-16 strings and checks what the launcher would list, for three synthetic mode
 lists (small, "real-world" 4K TV, and a stress list where more than 256 modes pass the 50 Hz filter).
 The expected outcome depends on the detected patch state (see the table in the script's docstring):
