@@ -1,0 +1,10 @@
+# never commit game files
+*.exe
+*.exe.orig
+*.dat
+*.dat.orig
+# build / packaging
+dist/
+__pycache__/
+*.pyc
+*.zip

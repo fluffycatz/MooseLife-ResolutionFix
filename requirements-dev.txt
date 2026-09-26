@@ -1,0 +1,4 @@
+# ml_resfix.py needs pefile; capstone/unicorn are only for tools/emu_test.py
+pefile>=2023.2.7
+capstone>=5.0
+unicorn>=2.0
